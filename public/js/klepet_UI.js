@@ -13,7 +13,10 @@ function divElementEnostavniTekst(sporocilo) {
    
   var jeSlika = (new RegExp("(?:http|https)://[^ ]*[.]{1}(?:jpg|png|gif)","gi")).test(sporocilo);
   
-  if (jeSlika) {
+  /* preverimo ali gre za video */
+  var jeVideo = (new RegExp("https:\\/\\/www\\.youtube\\.com\\/watch\\?v=(\\w*)",'gi')).test(sporocilo);
+  
+  if (jeSlika || jeVideo) {
     /*  nekoliko sem popravil regex, ker drugace je stvar neuporabna za vse
         formate slik - vem da zgleda grozno, ampak dlje casa ko buljis v to,
         bolj ti bo vsec
@@ -22,10 +25,11 @@ function divElementEnostavniTekst(sporocilo) {
                 /* za nove vrstice */
                 replace(new RegExp("&lt;br \/&gt;","gi"),"<br />").
                 /* za povezave na dejanske slike */
-                replace(new RegExp("&lt;(img((?!&gt;).)*[.]{1}(?:jpg|png|gif)\') \/&gt;","gi"),"<$1 />");
+                replace(new RegExp("&lt;(img((?!&gt;).)*[.]{1}(?:jpg|png|gif)\') \/&gt;","gi"),"<$1 />").
+                /* video */
+                replace(new RegExp("&lt;(iframe[^;]*)&gt;&lt;(\\/iframe)&gt;","gi"),"<$1> <$2>");
     return $('<div style="font-weight: bold"></div>').html(sporocilo);
-  }
-  else {
+  } else {
     return $('<div style="font-weight: bold;"></div>').text(sporocilo);
   }
 }
@@ -37,6 +41,7 @@ function divElementHtmlTekst(sporocilo) {
 function procesirajVnosUporabnika(klepetApp, socket) {
   var sporocilo = $('#poslji-sporocilo').val();
   sporocilo = dodajSlike(sporocilo);
+  sporocilo = dodajVideo(sporocilo);
   sporocilo = dodajSmeske(sporocilo);
   var sistemskoSporocilo;
 
@@ -209,6 +214,40 @@ function dodajSlike(vhodnoBesedilo) {
       console.log(povezave[i]);
       vhodnoBesedilo+='<img class=\'poslanaSlika\' src=\''+povezave[i]+'\' />';
     }
+  }
+  return vhodnoBesedilo;
+}
+
+/*  na podoben nacin, kot smo to poceli pri slikah, bomo mi za podan video link
+    zgenerirali pripadajoco kodo */
+function dodajVideo(vhodnoBesedilo) {
+  /* pridobimo vse video linke */
+  /*  !!POZOR!!: ko ti pises regularne izraze v nizu, moras escape znake regularnega
+      izraza \ escapati se za niz! Torej \\ namesto \ */
+      
+  /*  prav tako nepogresljiv vir za tvorbo regularnih izrazov je sledeca spletna
+      stran: https://regex101.com/#javascript
+  */
+  var videoIzraz = new RegExp("https:\\/\\/www\\.youtube\\.com\\/watch\\?v=(\\w*)",'gi');
+  
+  /*  se ena zelo zabavna lastnost JS rexex .exec funkcije - ona ti ne vrne ven
+      vseh zadetkov hkrati, ampak enega po enega, zato moras ti iterirati po
+      zanki, dokler njej ne zmanjka izhoda*/
+  
+  var povezava = null;
+  var prvic = true; /* da samo prvic vstavimo preskok v novo vrstico */
+  /*  delamo dokler regexu ne zmanjka izhoda (torej dokler ne preiscemo celotnega
+      vhodnega besedila) - gremo po eno povezavo naenkrat */
+  while((povezava = videoIzraz.exec(vhodnoBesedilo)) != null)
+  {
+    if(prvic)
+    {
+      /* video damo v novo vrstico */
+      vhodnoBesedilo+=' <br /> ';
+      prvic=false;
+    }
+    /* pripnemo povezavo */
+    vhodnoBesedilo+= "<iframe class=\'poslanVideo\' src='https://www.youtube.com/embed/"+povezava[1]+"' allowfullscreen></iframe>"
   }
   return vhodnoBesedilo;
 }
