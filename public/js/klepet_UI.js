@@ -78,6 +78,21 @@ $(document).ready(function() {
     $('#sporocila').append(novElement);
   });
   
+  /*  ce jaz prav razumem, je socket.on funkcija namenjena temu, da se njen
+      callback izvede sele takrat ko mu streznik posreduje sporocilo z
+      danim identifikatorjem. Na nek nacin registriras dogodek, ki se odziva
+      na dejanja streznika.
+      
+      Streznik znotraj svoje listen funkcije
+      (vrstica 8, klepetalnica_streznik.js)
+      pri poskusu povezave odjemalca postavi vse vticnike, med njimi 'kanali'
+      ter 'uporabniki'
+      
+      in glede na to, da se sele tu registrirajo dogodki, ki se odzivajo na
+      klike po vmesniku, je to vsaj po mojem razumevanju zato, da vmesnik
+      zacne delovati sele takrat ko se vzpostavi povezava za podatke
+      pripadajocega gradnika.
+  */
   socket.on('kanali', function(kanali) {
     $('#seznam-kanalov').empty();
 
@@ -94,11 +109,30 @@ $(document).ready(function() {
     });
   });
 
+  /* po vzpostavitvi povezave s streznikom se registrira se .click dogodek */
   socket.on('uporabniki', function(uporabniki) {
     $('#seznam-uporabnikov').empty();
     for (var i=0; i < uporabniki.length; i++) {
       $('#seznam-uporabnikov').append(divElementEnostavniTekst(uporabniki[i]));
     }
+    /*  lahko uporabimo kar jQuery selektor, da se registrira dogodek za
+        vse trenutne uporabnike,
+        http://www.w3schools.com/jquery/event_click.asp
+    */
+    $('#seznam-uporabnikov div').click(function() {
+      /*  da bomo bolj fini, poskusajmo narediti, da bo kurzor vpisnega polja
+          ze znotraj obmocja za pisanje zasebnega sporocila
+          
+          Uporabil sem sledece
+          https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/setSelectionRange
+          https://learn.jquery.com/using-jquery-core/faq/how-do-i-pull-a-native-dom-element-from-a-jquery-object/
+      */
+      var zasebnoPredloga = '/zasebno \"'+$(this).text()+'\" \"\"';
+      $('#poslji-sporocilo').focus();
+      $('#poslji-sporocilo').val(zasebnoPredloga);
+      $('#poslji-sporocilo').get(0).setSelectionRange(zasebnoPredloga.length-1,
+                                                      zasebnoPredloga.length-1);
+    });
   });
 
   setInterval(function() {

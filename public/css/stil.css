@@ -48,6 +48,14 @@ a {
   background-color: #ddd;
 }
 
+#seznam-uporabnikov div {
+  cursor: pointer;
+}
+
+#seznam-uporabnikov div:hover {
+  background-color: #ddd;
+}
+
 #poslji-sporocilo {
   width: 700px;
   margin-bottom: 1em;
