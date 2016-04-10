@@ -38,6 +38,9 @@ function posredujStaticnoVsebino(odgovor, predpomnilnik, absolutnaPotDoDatoteke)
 
 var streznik = http.createServer(function(zahteva, odgovor) {
   var potDoDatoteke = false;
+  
+  /* TO BOMO KASNEJE ODSTRANILI - zaenkrat naj to tu ostane da streznik ne
+     bo predpomnil pokvarjenih spletnih strani. */
   predpomnilnik = {}; //Remove - this is developer hack!
 
   if (zahteva.url == '/') {
