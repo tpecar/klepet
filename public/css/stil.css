@@ -68,8 +68,8 @@ a {
 
 /* razred za poslane videoposnetke */
 .poslanVideo {
-  max-width: 200px;
-  max-height: 150px;
+  width: 200px;
+  height: 150px;
   /* glej http://www.w3schools.com/css/css_margin.asp */
   margin-left: 20px;
 }
