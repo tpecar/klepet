@@ -104,6 +104,8 @@ $(document).ready(function() {
   socket.on('sporocilo', function (sporocilo) {
     var novElement = divElementEnostavniTekst(sporocilo.besedilo);
     $('#sporocila').append(novElement);
+    /* pogovorno okno premaknemo navzdol tudi ko samo dobimo sporocilo */
+    $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
   });
   
   /*  ce jaz prav razumem, je socket.on funkcija namenjena temu, da se njen
@@ -221,10 +223,7 @@ function dodajSlike(vhodnoBesedilo) {
     vhodnoBesedilo+='<br />';
     /* pripnemo dodane slike na konec sporocila */
     for(var i=0; i<povezave.length; i++)
-    {
-      console.log(povezave[i]);
       vhodnoBesedilo+='<img class=\'poslanaSlika\' src=\''+povezave[i]+'\' />';
-    }
   }
   return vhodnoBesedilo;
 }
