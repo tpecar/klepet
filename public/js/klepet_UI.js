@@ -1,7 +1,19 @@
 function divElementEnostavniTekst(sporocilo) {
   var jeSmesko = sporocilo.indexOf('http://sandbox.lavbic.net/teaching/OIS/gradivo/') > -1;
-  if (jeSmesko) {
-    sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace('&lt;img', '<img').replace('png\' /&gt;', 'png\' />');
+  
+  /* preverimo ali gre za video */
+  var jeVideo = (new RegExp("https:\\/\\/www\\.youtube\\.com\\/watch\\?v=(\\w*)",'gi')).test(sporocilo);
+  
+  if (jeSmesko || jeVideo) {
+    sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').
+    /* za nove vrstice */
+    replace(new RegExp("&lt;br \/&gt;","gi"),"<br />").
+    /* video */
+    replace(new RegExp("&lt;(iframe[^;]*)&gt;&lt;(\\/iframe)&gt;","gi"),"<$1> <$2>").
+    /* smeski */
+    replace('&lt;img', '<img').
+    replace('png\' /&gt;', 'png\' />');
+    
     return $('<div style="font-weight: bold"></div>').html(sporocilo);
   } else {
     return $('<div style="font-weight: bold;"></div>').text(sporocilo);
@@ -14,6 +26,8 @@ function divElementHtmlTekst(sporocilo) {
 
 function procesirajVnosUporabnika(klepetApp, socket) {
   var sporocilo = $('#poslji-sporocilo').val();
+  
+  sporocilo = dodajVideo(sporocilo);
   sporocilo = dodajSmeske(sporocilo);
   var sistemskoSporocilo;
 
@@ -128,6 +142,39 @@ function dodajSmeske(vhodnoBesedilo) {
     vhodnoBesedilo = vhodnoBesedilo.replace(smesko,
       "<img src='http://sandbox.lavbic.net/teaching/OIS/gradivo/" +
       preslikovalnaTabela[smesko] + "' />");
+  }
+  return vhodnoBesedilo;
+}
+/*  na podoben nacin, kot smo to poceli pri slikah, bomo mi za podan video link
+    zgenerirali pripadajoco kodo */
+function dodajVideo(vhodnoBesedilo) {
+  /* pridobimo vse video linke */
+  /*  !!POZOR!!: ko ti pises regularne izraze v nizu, moras escape znake regularnega
+      izraza \ escapati se za niz! Torej \\ namesto \ */
+      
+  /*  prav tako nepogresljiv vir za tvorbo regularnih izrazov je sledeca spletna
+      stran: https://regex101.com/#javascript
+  */
+  var videoIzraz = new RegExp("https:\\/\\/www\\.youtube\\.com\\/watch\\?v=(\\w*)",'gi');
+  
+  /*  se ena zelo zabavna lastnost JS rexex .exec funkcije - ona ti ne vrne ven
+      vseh zadetkov hkrati, ampak enega po enega, zato moras ti iterirati po
+      zanki, dokler njej ne zmanjka izhoda*/
+  
+  var povezava = null;
+  var prvic = true; /* da samo prvic vstavimo preskok v novo vrstico */
+  /*  delamo dokler regexu ne zmanjka izhoda (torej dokler ne preiscemo celotnega
+      vhodnega besedila) - gremo po eno povezavo naenkrat */
+  while((povezava = videoIzraz.exec(vhodnoBesedilo)) != null)
+  {
+    if(prvic)
+    {
+      /* video damo v novo vrstico */
+      vhodnoBesedilo+=' <br /> ';
+      prvic=false;
+    }
+    /* pripnemo povezavo */
+    vhodnoBesedilo+= "<iframe class=\'poslanVideo\' src='https://www.youtube.com/embed/"+povezava[1]+"' allowfullscreen></iframe>"
   }
   return vhodnoBesedilo;
 }
