@@ -82,7 +82,7 @@ function filtirirajVulgarneBesede(vhod) {
 
 $(document).ready(function() {
   var klepetApp = new Klepet(socket);
-
+  
   socket.on('vzdevekSpremembaOdgovor', function(rezultat) {
     var sporocilo;
     if (rezultat.uspesno) {
@@ -162,7 +162,20 @@ $(document).ready(function() {
                                                       zasebnoPredloga.length-1);
     });
   });
-
+  
+  var dregljajTrajanje;
+  /*  funkcija za obdelavo dregljaja - njeno delovanje povzel po dokumentaciji
+      na https://jackrugile.com/jrumble/ */
+  socket.on('dregljaj', function(dregljaj){
+    /* izpisemo kdo nas je dregnil */
+    $('#sporocila').append(divElementHtmlTekst("Oseba "+dregljaj.izvor+" vam je poslala dregljaj!"));
+    /* inicializiramo jrumble nad vsebino */
+    $("#vsebina").jrumble();
+    clearTimeout(dregljajTrajanje);
+    $("#vsebina").trigger("startRumble")
+    dregljajTrajanje = setTimeout(function(){$("#vsebina").trigger('stopRumble');}, 1500)
+  });
+  
   setInterval(function() {
     socket.emit('kanali');
     socket.emit('uporabniki', {kanal: trenutniKanal});
@@ -174,8 +187,6 @@ $(document).ready(function() {
     procesirajVnosUporabnika(klepetApp, socket);
     return false;
   });
-  
-  
 });
 
 function dodajSmeske(vhodnoBesedilo) {

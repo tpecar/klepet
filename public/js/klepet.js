@@ -43,6 +43,17 @@ Klepet.prototype.procesirajUkaz = function(ukaz) {
         sporocilo = 'Neznan ukaz';
       }
       break;
+      /*  streznik poslusa na kanalu 'dregljaj' za morebitne ukaze povezane
+          z dregljaji */
+    case 'dregljaj':
+      besede.shift();
+      var vzdevek = besede.join();
+      if (vzdevek) {
+        this.socket.emit('dregljaj', {vzdevek: vzdevek});
+      } else {
+        sporocilo = 'Potrebno je podati vzdevek uporabnika.';
+      }
+      break;
     default:
       sporocilo = 'Neznan ukaz.';
       break;
