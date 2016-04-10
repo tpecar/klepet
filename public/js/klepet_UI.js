@@ -1,9 +1,28 @@
+/*  dana funkcija se klice, ko od streznika prispe novo sporocilo
+    (tudi nase, ker odjemalec najprej poslje strezniku ter on njemu nazaj
+    njegovo vsebino)
+    */
 function divElementEnostavniTekst(sporocilo) {
-  var jeSmesko = sporocilo.indexOf('http://sandbox.lavbic.net/teaching/OIS/gradivo/') > -1;
-  if (jeSmesko) {
-    sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').replace('&lt;img', '<img').replace('png\' /&gt;', 'png\' />');
+  /* ker se smeskoti pretvorijo na strani odjemalca ter ker se streznik popolnoma
+     nic ne sekira glede zaporedij, ki bi morda lahko bili koda, lahko prvotno
+     detekcijo smeskotov ker odstranimo - ti so navsezadnje le slike */
+  //var jeSmesko = sporocilo.indexOf('http://sandbox.lavbic.net/teaching/OIS/gradivo/') > -1;
+  /* uporabimo regularne izraze
+     https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions
+  */
+   
+  var jeSlika = (new RegExp("(?:http|https)://.*[.]{1}(?:jpg|png|gif)","gi")).test(sporocilo);
+  
+  if (jeSlika) {
+    /*  nekoliko sem popravil regex, ker drugace je stvar neuporabna za vse
+        formate slik - vem da zgleda grozno, ampak dlje casa ko buljis v to,
+        bolj ti bo vsec
+    */
+    sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').
+                replace(new RegExp("&lt;(img((?!&gt;).)*[.]{1}(?:jpg|png|gif)\') \/&gt;","gi"),"<$1 />");
     return $('<div style="font-weight: bold"></div>').html(sporocilo);
-  } else {
+  }
+  else {
     return $('<div style="font-weight: bold;"></div>').text(sporocilo);
   }
 }
@@ -11,9 +30,10 @@ function divElementEnostavniTekst(sporocilo) {
 function divElementHtmlTekst(sporocilo) {
   return $('<div></div>').html('<i>' + sporocilo + '</i>');
 }
-
+/* dana funkcija preoblikuje vnos uporabnika se predno je to poslano strezniku*/
 function procesirajVnosUporabnika(klepetApp, socket) {
   var sporocilo = $('#poslji-sporocilo').val();
+  sporocilo = dodajSlike(sporocilo);
   sporocilo = dodajSmeske(sporocilo);
   var sistemskoSporocilo;
 
@@ -127,7 +147,11 @@ function dodajSmeske(vhodnoBesedilo) {
   for (var smesko in preslikovalnaTabela) {
     vhodnoBesedilo = vhodnoBesedilo.replace(smesko,
       "<img src='http://sandbox.lavbic.net/teaching/OIS/gradivo/" +
-      preslikovalnaTabela[smesko] + "' />");
+      preslikovalnaTabela[smesko] + "' />","g");
   }
   return vhodnoBesedilo;
+}
+function dodajSlike(vhodnoBesedilo) {
+  var slikaIzraz = new RegExp("(?:http|https)://.*[.]{1}(?:jpg|png|gif)");
+  return vhodnoBesedilo.replace(slikaIzraz, '<img class=\'poslanaSlika\' src=\'$&\' />');
 }
