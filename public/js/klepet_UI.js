@@ -160,7 +160,7 @@ function dodajSlike(vhodnoBesedilo) {
      znake razen presledka - ce je ta ze znotraj URI slike, je ta kodiran */
   var slikaIzraz = new RegExp("(?:http|https)://[^ ]*[.]{1}(?:jpg|png|gif)","gi");
   /* pridobimo vse povezave */
-  var povezave = vhodnoBesedilo.match(slikaIzraz, '<img class=\'poslanaSlika\' src=\'$&\' />');
+  var povezave = vhodnoBesedilo.match(slikaIzraz);
   
   /*  mi seveda poskusamo dodajati le takrat, ko imamo kaj za dodati - .match v
       primeru praznega zadetka namrec vrne null, ki pa nima .length atributa,
