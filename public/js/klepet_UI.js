@@ -11,7 +11,7 @@ function divElementEnostavniTekst(sporocilo) {
      https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions
   */
    
-  var jeSlika = (new RegExp("(?:http|https)://.*[.]{1}(?:jpg|png|gif)","gi")).test(sporocilo);
+  var jeSlika = (new RegExp("(?:http|https)://[^ ]*[.]{1}(?:jpg|png|gif)","gi")).test(sporocilo);
   
   if (jeSlika) {
     /*  nekoliko sem popravil regex, ker drugace je stvar neuporabna za vse
@@ -19,6 +19,9 @@ function divElementEnostavniTekst(sporocilo) {
         bolj ti bo vsec
     */
     sporocilo = sporocilo.replace(/\</g, '&lt;').replace(/\>/g, '&gt;').
+                /* za nove vrstice */
+                replace(new RegExp("&lt;br \/&gt;","gi"),"<br />").
+                /* za povezave na dejanske slike */
                 replace(new RegExp("&lt;(img((?!&gt;).)*[.]{1}(?:jpg|png|gif)\') \/&gt;","gi"),"<$1 />");
     return $('<div style="font-weight: bold"></div>').html(sporocilo);
   }
@@ -152,6 +155,26 @@ function dodajSmeske(vhodnoBesedilo) {
   return vhodnoBesedilo;
 }
 function dodajSlike(vhodnoBesedilo) {
-  var slikaIzraz = new RegExp("(?:http|https)://.*[.]{1}(?:jpg|png|gif)");
-  return vhodnoBesedilo.replace(slikaIzraz, '<img class=\'poslanaSlika\' src=\'$&\' />');
+  /* veljaven vhodni link je tisti, ki se zacne s http/https, konca jpg/png/gif
+     vmes pa vsebuje (mi bomo kar pospolosili zadevo in v grobem rekli) vse
+     znake razen presledka - ce je ta ze znotraj URI slike, je ta kodiran */
+  var slikaIzraz = new RegExp("(?:http|https)://[^ ]*[.]{1}(?:jpg|png|gif)","gi");
+  /* pridobimo vse povezave */
+  var povezave = vhodnoBesedilo.match(slikaIzraz, '<img class=\'poslanaSlika\' src=\'$&\' />');
+  
+  /*  mi seveda poskusamo dodajati le takrat, ko imamo kaj za dodati - .match v
+      primeru praznega zadetka namrec vrne null, ki pa nima .length atributa,
+      zato bi se funkcija sesula */
+  if(povezave != null)
+  {
+    /* slike damo v novo vrstico */
+    vhodnoBesedilo+='<br />';
+    /* pripnemo dodane slike na konec sporocila */
+    for(var i=0; i<povezave.length; i++)
+    {
+      console.log(povezave[i]);
+      vhodnoBesedilo+='<img class=\'poslanaSlika\' src=\''+povezave[i]+'\' />';
+    }
+  }
+  return vhodnoBesedilo;
 }
