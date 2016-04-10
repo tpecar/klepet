@@ -65,3 +65,9 @@ a {
 #pomoc {
   font: 10px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
+
+/* razred za poslane slike */
+.poslanaSlika {
+  max-width: 200px;
+  padding-left: 20px;
+}
